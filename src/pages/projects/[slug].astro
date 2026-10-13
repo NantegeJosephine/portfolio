@@ -1,0 +1,69 @@
+---
+import { getCollection, render } from 'astro:content';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../config';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('case-studies');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const availableShots = d.screenshots.filter((s) =>
+  existsSync(join(process.cwd(), 'public', s.replace(/^\//, '')))
+);
+---
+
+<Base title={`${d.title} — ${SITE.name}`} description={d.summary}>
+  <p><a class="backlink" href="/projects">← All projects</a></p>
+  <h1>{d.title}</h1>
+  <p class="subtitle">{d.tagline}</p>
+
+  <div class="case-header-meta">
+    <div class="chips">
+      {d.tools.map((t) => <span class="chip">{t}</span>)}
+    </div>
+    {d.repoUrl && (
+      <a class="button ghost" href={d.repoUrl} target="_blank" rel="noopener">View repository</a>
+    )}
+  </div>
+
+  {availableShots.length > 0 && (
+    <div class="shots">
+      {availableShots.map((src) => <img src={src} alt={`${d.title} screenshot`} loading="lazy" />)}
+    </div>
+  )}
+
+  <div class="case-section">
+    <h2>Problem</h2>
+    <p>{d.problem}</p>
+  </div>
+
+  <div class="case-section">
+    <h2>Data</h2>
+    <p>{d.data}</p>
+  </div>
+
+  <div class="case-section">
+    <h2>Method</h2>
+    <p>{d.method}</p>
+  </div>
+
+  <div class="case-section">
+    <h2>Outcomes</h2>
+    <ul class="outcomes">
+      {d.outcomes.map((o) => <li>{o}</li>)}
+    </ul>
+  </div>
+
+  <div class="prose">
+    <Content />
+  </div>
+</Base>

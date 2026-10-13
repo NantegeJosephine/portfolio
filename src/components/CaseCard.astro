@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  entry: CollectionEntry<'case-studies'>;
+}
+
+const { entry } = Astro.props;
+const { title, tagline, tools, screenshots } = entry.data;
+const cover =
+  screenshots.find((s) => existsSync(join(process.cwd(), 'public', s.replace(/^\//, '')))) ?? null;
+---
+
+<a href={`/projects/${entry.id}/`} class="card case-card">
+  {cover
+    ? <img src={cover} alt={`${title} screenshot`} loading="lazy" />
+    : <div class="shot-placeholder">Screenshot coming soon</div>}
+  <div>
+    <h3>{title}</h3>
+    <p class="tagline">{tagline}</p>
+  </div>
+  <div class="chips">
+    {tools.map((t) => <span class="chip">{t}</span>)}
+  </div>
+</a>

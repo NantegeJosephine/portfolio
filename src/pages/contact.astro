@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE } from '../config';
+---
+
+<Base title={`Contact — ${SITE.name}`}>
+  <h1>Contact</h1>
+  <p class="subtitle">The fastest ways to reach me:</p>
+
+  <div class="cards">
+    <a class="card" href={SITE.github} target="_blank" rel="noopener">
+      <h3>GitHub</h3>
+      <p class="tagline">Code, notebooks and dashboard source files.</p>
+    </a>
+    {SITE.email && (
+      <a class="card" href={`mailto:${SITE.email}`}>
+        <h3>Email</h3>
+        <p class="tagline">{SITE.email}</p>
+      </a>
+    )}
+    {SITE.linkedin && (
+      <a class="card" href={SITE.linkedin} target="_blank" rel="noopener">
+        <h3>LinkedIn</h3>
+        <p class="tagline">Professional profile and background.</p>
+      </a>
+    )}
+  </div>
+
+  {!(SITE.email || SITE.linkedin) && (
+    <p class="note">Email and LinkedIn links are on the way — GitHub is the best channel for now.</p>
+  )}
+</Base>

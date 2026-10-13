@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import { SITE, SKILL_GROUPS } from '../config';
+---
+
+<Base title={`About — ${SITE.name}`}>
+  <h1>About</h1>
+
+  <div class="prose">
+    <p>
+      I'm Josephine, a data scientist who enjoys the part of the work that comes
+      before the first chart: taking messy, inconsistent real-world records and
+      turning them into something a decision can rest on.
+    </p>
+    <p>
+      My work spans the full analytics path — cleaning and analysing data in
+      Python and SQL, and presenting it to non-technical audiences in Power BI
+      and Excel. I care that every step is auditable, because an answer nobody
+      can trace is an answer nobody trusts.
+    </p>
+  </div>
+
+  <h2>Skills</h2>
+  <div class="skill-groups">
+    {SKILL_GROUPS.map((group) => (
+      <div class="skill-group">
+        <h3>{group.title}</h3>
+        <div class="chips">
+          {group.skills.map((skill) => <span class="chip">{skill}</span>)}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <h2>CV</h2>
+  {SITE.cvPath ? (
+    <a class="button" href={SITE.cvPath} download>Download CV (PDF)</a>
+  ) : (
+    <p class="note">CV available on request.</p>
+  )}
+</Base>
