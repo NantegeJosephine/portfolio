@@ -6,13 +6,14 @@ import { join } from 'node:path';
 
 const DIST = join(process.cwd(), 'dist');
 
-const failures = [];
-let current = { page: '(unlabelled)' };
+class VerifyFailure extends Error {}
+
+// The page currently under test, so failures name where they happened.
+let currentPage = '(unlabelled)';
 
 function expect(condition, expectation) {
   if (!condition) {
-    failures.push({ page: current.page, expectation });
-    throw new Error(`[verify] ${current.page}: ${expectation}`);
+    throw new VerifyFailure(`${currentPage}: ${expectation}`);
   }
 }
 
@@ -23,18 +24,16 @@ function page(route) {
   return { route, html: readFileSync(file, 'utf8') };
 }
 
-function checking(route, fn) {
-  current = { page: route };
+function checking(route, assertions) {
+  currentPage = route;
   try {
-    fn(page(route));
+    assertions(page(route));
   } catch (error) {
-    if (!failures.some((f) => f.page === route && String(error).includes(f.expectation))) {
-      throw error; // not an expect() failure — a real bug in the harness
-    }
-    console.error(error.message);
+    if (!(error instanceof VerifyFailure)) throw error; // a harness bug, not a site failure
+    console.error(`[verify] ${error.message}`);
     process.exit(1);
   } finally {
-    current = { page: '(unlabelled)' };
+    currentPage = '(unlabelled)';
   }
 }
 
@@ -44,7 +43,7 @@ const nav = home.html.match(/<nav>[\s\S]*?<\/nav>/)?.[0] ?? '';
 const navLinks = [...nav.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).filter((h) => h.startsWith('/'));
 checking('/', () => expect(navLinks.length >= 3, `site navigation exposes at least 3 internal links`));
 for (const link of navLinks) {
-  checking(link, () => {});
+  checking(link, () => {}); // page() inside asserts the route resolves
 }
 
 // --- 2. Case studies render in their configured order (spec: order field) ---
@@ -68,7 +67,7 @@ for (const route of ['/', '/projects']) {
   });
 }
 
-// --- 3. Tool badges render on each case study page ---
+// --- 3. Tool badges render for each case study, on its page and on listings ---
 const TOOLS_BY_CASE_STUDY = new Map([
   ['/projects/safari-travel-bookings', ['Python', 'pandas', 'Jupyter', 'Power BI']],
   ['/projects/students-academic-performance', ['Power BI', 'Power Query', 'DAX']],
@@ -79,6 +78,15 @@ for (const [route, tools] of TOOLS_BY_CASE_STUDY) {
   checking(route, ({ html }) => {
     for (const tool of tools) {
       expect(html.includes(tool), `tool badge "${tool}" renders`);
+    }
+  });
+}
+for (const listingRoute of ['/', '/projects']) {
+  checking(listingRoute, ({ html }) => {
+    for (const tools of TOOLS_BY_CASE_STUDY.values()) {
+      for (const tool of tools) {
+        expect(html.includes(tool), `tool badge "${tool}" renders on the listing`);
+      }
     }
   });
 }
