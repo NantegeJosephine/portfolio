@@ -10,6 +10,7 @@ on Vercel. Case studies live as markdown files under
 npm install
 npm run dev      # local dev server
 npm run build    # production build into dist/
+npm run verify   # production build + behavioural assertions against dist/
 ```
 
 ## Your TODOs to finish personalising
